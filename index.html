@@ -17,54 +17,94 @@
         #landing, #orchestra { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; z-index: 20; }
         #orchestra { display: none; }
         
-        h1 { color: var(--purple); font-size: 2.5rem; letter-spacing: 8px; margin: 0; text-shadow: 0 0 15px var(--pink); }
-        p { color: var(--purple); opacity: 0.8; max-width: 320px; margin: 20px 0; font-size: 0.9rem; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(15px);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex; flex-direction: column; align-items: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
 
+        /* MODAL STYLES */
+        #info-btn { position: absolute; top: 20px; right: 20px; width: 35px; height: 35px; border-radius: 50%; border: 1px solid var(--purple); background: none; color: var(--purple); cursor: pointer; z-index: 100; font-weight: bold; }
+        #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background: #1a0033; padding: 30px; border-radius: 15px; border: 1px solid var(--pink); max-width: 400px; text-align: left; line-height: 1.5; font-size: 0.85rem; }
+        .modal-content h3 { color: var(--pink); margin-top: 0; }
+
+        h1 { color: var(--purple); font-size: 2.5rem; letter-spacing: 8px; margin: 0; text-shadow: 0 0 15px var(--pink); }
         #rippleCanvas { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
 
-        button {
-            padding: 16px 40px; background: white; color: black; border: none; font-weight: bold; 
-            cursor: pointer; border-radius: 4px; transition: 0.2s; text-transform: uppercase; letter-spacing: 2px;
+        #visualizer { display: flex; gap: 5px; height: 30px; margin-bottom: 20px; align-items: flex-end; }
+        .v-bar { width: 5px; height: 20%; background: var(--blue); border-radius: 2px; transition: 0.15s; }
+
+        .stats { margin-top: 15px; font-size: 0.7rem; letter-spacing: 2px; color: var(--purple); }
+        #action-count { color: white; font-weight: bold; text-shadow: 0 0 10px var(--pink); font-size: 1.1rem; }
+
+        #data-feed {
+            position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%);
+            width: 280px; height: 50px; overflow: hidden; font-family: monospace;
+            font-size: 0.65rem; color: var(--blue); opacity: 0.6; pointer-events: none; text-align: center;
         }
+
+        button { padding: 16px 40px; background: white; color: black; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; transition: 0.2s; text-transform: uppercase; letter-spacing: 2px; }
         button:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--pink); }
         
-        #status { margin-top: 30px; font-family: monospace; color: var(--blue); font-size: 0.7rem; letter-spacing: 1px; }
-        
+        #status { margin-top: 20px; font-family: monospace; color: var(--blue); font-size: 0.7rem; letter-spacing: 1px; }
         footer { position: absolute; bottom: 20px; width: 100%; text-align: center; font-size: 0.7rem; color: #555; z-index: 30; }
         footer a { color: var(--purple); text-decoration: none; font-weight: bold; margin: 0 5px; }
     </style>
 </head>
 <body>
 
+    <button id="info-btn" onclick="toggleModal()">?</button>
+    <div id="modal" onclick="toggleModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3>Conductor's Guide 🜂</h3>
+            <p><b>Data Mapping:</b> We parse the last character of every transaction hash into a hexadecimal value (0-F), mapping it to the <b>A Minor Pentatonic</b> scale.</p>
+            <p><b>Visuals:</b> Transaction intensity dictates ripple thickness. Idle mode triggers <i>ambient harmonics</i> to maintain the lo-fi atmosphere.</p>
+            <p><b>Network:</b> Built for Somnia’s ultra-high-speed pulse.</p>
+            <button onclick="toggleModal()" style="width:100%; padding:10px; margin-top:10px;">Got it</button>
+        </div>
+    </div>
+
     <canvas id="rippleCanvas"></canvas>
+    <div id="data-feed"></div>
 
     <div id="landing">
         <h1>BLOCK PARTY 🎸</h1>
-        <p>The first generative lo-fi orchestra powered by Somnia's high-speed pulse.</p>
+        <p>A generative lo-fi orchestra powered by Somnia's pulse.</p>
         <button onclick="initApp()">INITIALIZE SYSTEM</button>
     </div>
 
     <div id="orchestra">
-        <h2 id="partyId" style="letter-spacing: 4px; font-weight: 200; color: var(--purple);">SYNCING...</h2>
-        <button id="mintBtn" onclick="mintNFT()">MINT MY SOUND (STT)</button>
-        <div id="status">AWAITING BLOCKCHAIN GENESIS...</div>
+        <div class="glass-card">
+            <h2 id="partyId" style="letter-spacing: 4px; font-weight: 200; color: var(--purple); margin-bottom: 15px;">SYNCING...</h2>
+            <div id="visualizer">
+                <div class="v-bar"></div><div class="v-bar"></div><div class="v-bar"></div>
+                <div class="v-bar"></div><div class="v-bar"></div><div class="v-bar"></div>
+            </div>
+            <button id="mintBtn" onclick="mintNFT()">MINT MY SOUND (STT)</button>
+            <div class="stats">TOTAL ACTIONS: <span id="action-count">0</span></div>
+            <div id="status">AWAITING BLOCKCHAIN GENESIS...</div>
+        </div>
     </div>
 
     <footer>
         Built by Senseii_ciel 🜂 | For Somnia Mini Hackathon<br>
-        <a href="https://x.com/Senseii_ciel" target="_blank">X</a> |
-        <a href="https://discord.com/users/1305099867126759516" target="_blank">Discord</a> |
-        <a href="https://github.com/ozzy-sensei" target="_blank">GitHub</a>
+        <a href="https://x.com/Senseii_ciel" target="_blank">X</a> | <a href="https://discord.com/users/1305099867126759516" target="_blank">Discord</a> | <a href="https://github.com/ozzy-sensei" target="_blank">GitHub</a>
     </footer>
-        <script>
+
+    <script>
         let provider, signer, userAddress;
         const MY_WALLET = "0x874192a4403e3a2cd7fe68baacd2fe35d980f71c"; 
         const RPC_WSS = "wss://dream-rpc.somnia.network/ws";
         const SOMNIA_CHAIN_ID = "0xc48c";
-        
         const SCALE = ["A3", "C4", "D4", "E4", "G4", "A4"];
         const ripples = [];
         let lastAction = Date.now();
+        let totalActions = 0;
 
         const synth = new Tone.PolySynth(Tone.Synth).toDestination();
         const bass = new Tone.MonoSynth({ oscillator: { type: "sine" } }).toDestination();
@@ -75,6 +115,11 @@
         const ctx = canvas.getContext('2d');
         function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.onresize = resize; resize();
+
+        function toggleModal() {
+            const m = document.getElementById('modal');
+            m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
+        }
 
         function draw() {
             ctx.fillStyle = "rgba(5, 0, 15, 0.15)"; 
@@ -92,10 +137,17 @@
         draw();
 
         function spawnRipple(rgb, speed = 2, lw = 1) {
-            ripples.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                r: 0, o: 0.6, rgb: rgb, speed: speed, lw: lw
+            if (ripples.length > 40) return; 
+            ripples.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: 0, o: 0.6, rgb: rgb, speed: speed, lw: lw });
+        }
+
+        function triggerVisuals(isAction = false) {
+            if (isAction) { totalActions++; document.getElementById('action-count').innerText = totalActions; }
+            document.querySelectorAll('.v-bar').forEach(bar => {
+                const h = isAction ? (Math.random()*80 + 20) : (Math.random()*30 + 10);
+                bar.style.height = h + "%";
+                bar.style.background = isAction ? "var(--pink)" : "var(--blue)";
+                setTimeout(() => { bar.style.height = "20%"; bar.style.background = "var(--blue)"; }, 300);
             });
         }
 
@@ -107,11 +159,9 @@
                 userAddress = accounts[0];
                 provider = new ethers.BrowserProvider(window.ethereum);
                 signer = await provider.getSigner();
-
                 document.getElementById('landing').style.display = 'none';
                 document.getElementById('orchestra').style.display = 'flex';
                 document.getElementById('partyId').innerText = `CONDUCTOR: ${userAddress.slice(0,6)}`;
-
                 await Tone.start();
                 startMusicLoop();
                 startListener();
@@ -121,13 +171,11 @@
         function startMusicLoop() {
             const loop = new Tone.Loop((time) => {
                 bass.triggerAttackRelease("A1", "2n", time, 0.3);
-                
-                // --- UPDATED: 8 SECONDS INSTEAD OF 15 ---
                 if (Date.now() - lastAction > 8000) { 
-                    const note = SCALE[Math.floor(Math.random() * SCALE.length)];
+                    const note = SCALE[Math.floor(Math.random()*SCALE.length)];
                     synth.triggerAttackRelease(note, "4n", time + 0.5);
                     spawnRipple("111, 213, 255", 2, 1);
-                    document.getElementById('status').innerText = "NETWORK IDLE: SOLO MODE ACTIVE";
+                    triggerVisuals(false);
                 }
             }, "2n").start(0);
             Tone.Transport.start();
@@ -135,20 +183,27 @@
 
         function startListener() {
             const socket = new ethers.WebSocketProvider(RPC_WSS);
+            const feed = document.getElementById('data-feed');
             socket.on("block", async (num) => {
-                const block = await socket.getBlock(num, true);
-                if(block.transactions.length > 0) {
-                    lastAction = Date.now();
-                    document.getElementById('status').innerText = `BLOCK #${num} PULSE: ${block.transactions.length} ACTIONS`;
-                    
-                    block.transactions.slice(0, 4).forEach((tx, i) => {
-                        const note = SCALE[parseInt(tx.hash.slice(-1), 16) % SCALE.length];
-                        setTimeout(() => {
-                            synth.triggerAttackRelease(note, "8n");
-                            spawnRipple("255, 105, 180", 4, 3); 
-                        }, i * 400);
-                    });
-                }
+                try {
+                    const block = await socket.getBlock(num, true);
+                    if(block && block.transactions.length > 0) {
+                        lastAction = Date.now();
+                        document.getElementById('status').innerText = `BLOCK #${num} PULSE`;
+                        block.transactions.slice(0, 4).forEach((tx, i) => {
+                            const note = SCALE[parseInt(tx.hash.slice(-1), 16) % SCALE.length];
+                            setTimeout(() => {
+                                synth.triggerAttackRelease(note, "8n");
+                                spawnRipple("255, 105, 180", 4, 3); 
+                                triggerVisuals(true);
+                                const line = document.createElement('div');
+                                line.innerText = `TX: ${tx.hash.slice(0,12)}... [${note}]`;
+                                feed.prepend(line);
+                                if(feed.children.length > 3) feed.lastChild.remove();
+                            }, i * 400);
+                        });
+                    }
+                } catch(e) {}
             });
         }
 
@@ -161,10 +216,9 @@
                 btn.innerText = "MINT SUCCESSFUL!";
                 synth.triggerAttackRelease(["A4", "C5", "E5"], "2n");
                 spawnRipple("255, 255, 255", 10, 5);
+                triggerVisuals(true);
             } catch (e) { btn.innerText = "MINT FAILED"; }
         }
-        </script>
+    </script>
 </body>
 </html>
-
-    
