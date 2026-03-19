@@ -3,38 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Somnia Block Party | Nightclub Edition</title>
+    <title>Somnia Block Party 🎸</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
     <style>
-        :root { --pink: #FF69B4; --purple: #7000FF; --blue: #00D1FF; }
-        /* PURPLE BLACK GRADIENT */
+        :root { --pink: #FF69B4; --light-purple: #B19CD9; --somnia-blue: #6FD5FF; }
+        
+        /* 1. PURPLE BLACK GRADIENT BACKGROUND */
         body, html { 
             margin: 0; padding: 0; 
-            background: radial-gradient(circle at center, #1a0033 0%, #05000a 100%); 
+            background: linear-gradient(180deg, #1a0033 0%, #000000 100%); 
             color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; 
         }
 
         #landing, #orchestra { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
         #orchestra { display: none; z-index: 10; }
         
-        h1 { color: #fff; font-size: 3rem; letter-spacing: 8px; text-shadow: 0 0 20px var(--purple); margin: 0; }
-        p { color: var(--blue); letter-spacing: 2px; font-size: 0.9rem; margin-bottom: 20px; }
+        h1 { color: var(--light-purple); font-size: 3rem; letter-spacing: 8px; margin: 0; }
+        p { color: var(--light-purple); opacity: 0.9; max-width: 350px; margin: 25px 0; line-height: 1.6; }
 
-        .desc-box { background: rgba(0,0,0,0.4); padding: 20px; border-radius: 12px; border: 1px solid var(--purple); max-width: 400px; margin-bottom: 20px; }
-
-        button { 
-            padding: 18px 50px; background: var(--purple); color: white; border: none; 
-            font-weight: bold; cursor: pointer; border-radius: 50px; letter-spacing: 2px; 
-            transition: 0.3s; box-shadow: 0 0 15px var(--purple);
+        button {
+            padding: 18px 45px; background: white; color: black; border: none; font-weight: bold; 
+            cursor: pointer; border-radius: 4px; transition: 0.2s; text-transform: uppercase; letter-spacing: 2px;
         }
-        button:hover { transform: scale(1.05); background: var(--pink); box-shadow: 0 0 30px var(--pink); }
+        button:hover { transform: translateY(-3px); box-shadow: 0 10px 30px var(--pink); }
 
         #rippleCanvas { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
-        #status { margin-top: 30px; font-family: monospace; color: var(--pink); font-size: 0.8rem; }
-
-        footer { position: absolute; bottom: 20px; width: 100%; text-align: center; font-size: 0.7rem; color: #555; z-index: 100; }
-        footer a { color: var(--blue); text-decoration: none; margin: 0 10px; }
+        #status { margin-top: 30px; font-family: monospace; color: var(--somnia-blue); font-size: 0.75rem; }
+        
+        footer { position: absolute; bottom: 20px; width: 100%; text-align: center; font-size: 0.7rem; color: #777; z-index: 30; line-height: 2; }
+        footer a { color: var(--light-purple); text-decoration: none; margin: 0 10px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -42,23 +40,22 @@
     <canvas id="rippleCanvas"></canvas>
 
     <div id="landing">
-        <h1>BLOCK PARTY</h1>
-        <p>SOMNIA ON-CHAIN ORCHESTRA</p>
-        <div class="desc-box">
-            Connect your wallet to join the first live symphony powered by Somnia's 400k TPS. Every transaction creates a new rhythm.
-        </div>
-        <button onclick="initApp()">ENTER PARTY</button>
+        <h1>BLOCK PARTY 🎸</h1>
+        <p>Connect your wallet to join the first on-chain orchestra. Every move on the Somnia network adds a layer to the symphony.</p>
+        <button onclick="connectAndSwitch()">ENTER PARTY</button>
     </div>
 
     <div id="orchestra">
-        <h2 id="partyId" style="letter-spacing: 4px; color: var(--blue);">SYNCING...</h2>
-        <button id="mintBtn" onclick="mintNFT()">MINT SOUND (STT)</button>
-        <div id="status">LISTENING TO GENESIS...</div>
+        <h2 id="partyId" style="letter-spacing: 5px; font-weight: 200; color: var(--light-purple);">SYNCING...</h2>
+        <button id="mintBtn" onclick="mintMySound()">MINT MY SOUND (STT)</button>
+        <div id="status">Awaiting Blockchain Pulse...</div>
     </div>
 
     <footer>
-        Built by Senseii_ciel 🜂 | For Somnia Mini Hackathon<br>
-        <a href="https://x.com/Senseii_ciel" target="_blank">X</a> | <a href="https://github.com/ozzy-sensei" target="_blank">GitHub</a>
+        Built by Senseii_ciel 🜂 | For the Somnia Mini Hackathon<br>
+        <a href="https://x.com/Senseii_ciel" target="_blank">X (Twitter)</a> |
+        <a href="https://discord.com/users/1305099867126759516" target="_blank">Discord</a> |
+        <a href="https://github.com/ozzy-sensei" target="_blank">GitHub</a>
     </footer>
 
     <script>
@@ -67,18 +64,18 @@
         const SOMNIA_CHAIN_ID = "0xc48c"; 
         const RPC_WSS = "wss://dream-rpc.somnia.network/ws";
 
-        // DRUMS & INSTRUMENTS
+        // AUDIO ENGINE: Kick, Bass, and Pluck
         const kick = new Tone.MembraneSynth().toDestination();
-        const bass = new Tone.MonoSynth({ oscillator: { type: "square" }, envelope: { attack: 0.1 } }).toDestination();
-        const lead = new Tone.PolySynth(Tone.Synth).toDestination();
+        const bass = new Tone.MonoSynth({ oscillator: { type: "triangle" }, envelope: { attack: 0.1 } }).toDestination();
+        const polyPluck = new Tone.PolySynth(Tone.Synth, { envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
         const reverb = new Tone.Reverb(2).toDestination();
-        lead.connect(reverb);
+        polyPluck.connect(reverb);
 
-        const SCALE = ["A2", "C3", "E3", "G3", "A3", "C4"];
-        const NEONS = ["#FF69B4", "#7000FF", "#00D1FF", "#00FFCC"];
+        const SCALE = ["A3", "C4", "D4", "E4", "G4", "A4"];
+        const RAINBOW = ["#FF69B4", "#B19CD9", "#6FD5FF", "#00FFCC", "#FFD700"];
         let ripples = [];
 
-        async function initApp() {
+        async function connectAndSwitch() {
             if (!window.ethereum) return alert("Web3 Wallet Required!");
             try {
                 await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: SOMNIA_CHAIN_ID }] });
@@ -88,64 +85,55 @@
                 signer = await provider.getSigner();
 
                 document.getElementById('landing').style.display = 'none';
-                document.getElementById('orchestra').style.display = 'flex';
-                document.getElementById('partyId').innerText = `CONDUCTOR: ${userAddress.slice(0,6)}`;
+                document.getElementById('orchestra').style.display = 'block';
+                document.getElementById('partyId').innerText = `PARTY AT: ${userAddress.slice(0,6)}...`;
 
-                // Start Music Engine
                 await Tone.start();
-                Tone.Transport.bpm.value = 124; // House music tempo
+                Tone.Transport.bpm.value = 120;
+                Tone.Transport.start();
                 
-                // 4/4 KICK DRUM BEAT
+                // Start a constant background beat
                 Tone.Transport.scheduleRepeat((time) => {
-                    kick.triggerAttackRelease("C1", "8n", time, 0.6);
-                    spawnRipple("#7000FF", true); // Center ripple on kick
+                    kick.triggerAttackRelease("C1", "8n", time, 0.3);
+                    bass.triggerAttackRelease("A1", "8n", time, 0.2);
                 }, "4n");
 
-                Tone.Transport.start();
                 startCanvas();
-                startLiveListener();
+                startListener();
             } catch (e) { console.error(e); }
         }
 
-        function startLiveListener() {
+        function startListener() {
             const socket = new ethers.WebSocketProvider(RPC_WSS);
             socket.on("block", async (num) => {
                 const block = await socket.getBlock(num, true);
-                document.getElementById('status').innerText = `BLOCK #${num} | TX COUNT: ${block.transactions.length}`;
+                document.getElementById('status').innerText = `BLOCK #${num} | ${block.transactions.length} ACTIONS`;
                 
-                if(block.transactions.length > 0) {
-                    block.transactions.slice(0, 4).forEach((tx, i) => {
-                        const note = SCALE[parseInt(tx.hash.slice(-1), 16) % SCALE.length];
-                        const color = NEONS[parseInt(tx.hash.slice(-2), 16) % NEONS.length];
-                        
-                        // Schedule notes on the 8th note grid
-                        Tone.Transport.scheduleOnce((time) => {
-                            lead.triggerAttackRelease(note, "16n", time, 0.4);
-                            bass.triggerAttackRelease(SCALE[0], "32n", time, 0.3);
-                            spawnRipple(color, false);
-                        }, `+${i * 0.25}`); 
-                    });
-                }
+                block.transactions.slice(0, 4).forEach((tx, i) => {
+                    // This "Quantizes" the sound so it hits on a musical beat (no lag)
+                    const timing = ["+0", "+8n", "+4n", "+2n"][i];
+                    const note = SCALE[parseInt(tx.hash.slice(-1), 16) % SCALE.length];
+                    const color = RAINBOW[parseInt(tx.hash.slice(-2), 16) % RAINBOW.length];
+
+                    Tone.Transport.scheduleOnce((time) => {
+                        polyPluck.triggerAttackRelease(note, "16n", time);
+                        spawnRipple(color);
+                    }, timing);
+                });
             });
         }
 
-        function spawnRipple(color, centered) {
-            ripples.push({
-                x: centered ? window.innerWidth / 2 : Math.random() * window.innerWidth,
-                y: centered ? window.innerHeight / 2 : Math.random() * window.innerHeight,
-                r: 0,
-                o: 0.8,
-                c: color
-            });
+        function spawnRipple(color) {
+            ripples.push({ x: Math.random()*window.innerWidth, y: Math.random()*window.innerHeight, r: 0, o: 0.8, c: color });
         }
 
-        async function mintNFT() {
+        async function mintMySound() {
             const btn = document.getElementById('mintBtn');
-            btn.innerText = "CONFIRMING...";
+            btn.innerText = "MINTING...";
             try {
                 const tx = await signer.sendTransaction({ to: MY_WALLET, value: ethers.parseEther("0.1") });
                 await tx.wait();
-                btn.innerText = "MINT SUCCESS!";
+                btn.innerText = "MINT SUCCESSFUL!";
             } catch (e) { btn.innerText = "MINT FAILED"; }
         }
 
@@ -154,8 +142,7 @@
             const ctx = canvas.getContext('2d');
             canvas.width = window.innerWidth; canvas.height = window.innerHeight;
             function draw() {
-                ctx.fillStyle = "rgba(5, 0, 10, 0.2)";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.clearRect(0,0,canvas.width, canvas.height);
                 ripples.forEach((r, i) => {
                     r.r += 4; r.o -= 0.015;
                     ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2);
