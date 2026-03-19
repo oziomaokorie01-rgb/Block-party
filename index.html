@@ -56,19 +56,16 @@
         <a href="https://discord.com/users/1305099867126759516" target="_blank">Discord</a> |
         <a href="https://github.com/ozzy-sensei" target="_blank">GitHub</a>
     </footer>
-
-    <script>
+        <script>
         let provider, signer, userAddress;
         const MY_WALLET = "0x874192a4403e3a2cd7fe68baacd2fe35d980f71c"; 
         const RPC_WSS = "wss://dream-rpc.somnia.network/ws";
         const SOMNIA_CHAIN_ID = "0xc48c";
         
-        // 1. IMPROVED MUSICAL SCALE (A Minor Pentatonic)
         const SCALE = ["A3", "C4", "D4", "E4", "G4", "A4"];
         const ripples = [];
         let lastAction = Date.now();
 
-        // 2. AUDIO ENGINE (With Bass and Reverb)
         const synth = new Tone.PolySynth(Tone.Synth).toDestination();
         const bass = new Tone.MonoSynth({ oscillator: { type: "sine" } }).toDestination();
         const reverb = new Tone.Reverb(4).toDestination();
@@ -79,9 +76,8 @@
         function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.onresize = resize; resize();
 
-        // 3. RIPPLE ANIMATION
         function draw() {
-            ctx.fillStyle = "rgba(5, 0, 15, 0.15)"; // Soft trail effect
+            ctx.fillStyle = "rgba(5, 0, 15, 0.15)"; 
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ripples.forEach((r, i) => {
                 r.r += r.speed; r.o -= 0.01;
@@ -90,7 +86,6 @@
                 ctx.lineWidth = r.lw; ctx.stroke();
                 if(r.o <= 0) ripples.splice(i, 1);
             });
-            // Idle background ripples (The "LAKE" effect)
             if(Math.random() < 0.02) spawnRipple("177, 156, 217", 1, 0.5); 
             requestAnimationFrame(draw);
         }
@@ -104,7 +99,6 @@
             });
         }
 
-        // 4. APP LOGIC
         async function initApp() {
             if (!window.ethereum) return alert("Web3 Wallet Required!");
             try {
@@ -124,17 +118,16 @@
             } catch (e) { console.error(e); }
         }
 
-        // 5. THE "SONG" LOOP (Steady Bass & Pulse)
         function startMusicLoop() {
             const loop = new Tone.Loop((time) => {
-                // Heartbeat Bass
                 bass.triggerAttackRelease("A1", "2n", time, 0.3);
                 
-                // If idle for > 15s, play a random melody
-                if (Date.now() - lastAction > 15000) {
+                // --- UPDATED: 8 SECONDS INSTEAD OF 15 ---
+                if (Date.now() - lastAction > 8000) { 
                     const note = SCALE[Math.floor(Math.random() * SCALE.length)];
                     synth.triggerAttackRelease(note, "4n", time + 0.5);
                     spawnRipple("111, 213, 255", 2, 1);
+                    document.getElementById('status').innerText = "NETWORK IDLE: SOLO MODE ACTIVE";
                 }
             }, "2n").start(0);
             Tone.Transport.start();
@@ -148,12 +141,10 @@
                     lastAction = Date.now();
                     document.getElementById('status').innerText = `BLOCK #${num} PULSE: ${block.transactions.length} ACTIONS`;
                     
-                    // Map TXs to a sequence
                     block.transactions.slice(0, 4).forEach((tx, i) => {
                         const note = SCALE[parseInt(tx.hash.slice(-1), 16) % SCALE.length];
                         setTimeout(() => {
                             synth.triggerAttackRelease(note, "8n");
-                            // BIG PINK RIPPLE FOR TRANSACTIONS
                             spawnRipple("255, 105, 180", 4, 3); 
                         }, i * 400);
                     });
@@ -163,16 +154,17 @@
 
         async function mintNFT() {
             const btn = document.getElementById('mintBtn');
-            btn.innerText = "SENDING 0.1 STT...";
+            btn.innerText = "SENDING STT...";
             try {
                 const tx = await signer.sendTransaction({ to: MY_WALLET, value: ethers.parseEther("0.1") });
                 await tx.wait();
                 btn.innerText = "MINT SUCCESSFUL!";
-                // Victory Chord
                 synth.triggerAttackRelease(["A4", "C5", "E5"], "2n");
                 spawnRipple("255, 255, 255", 10, 5);
             } catch (e) { btn.innerText = "MINT FAILED"; }
         }
-    </script>
+        </script>
 </body>
 </html>
+
+    
