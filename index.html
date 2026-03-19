@@ -3,80 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Somnia Block Party 🎸</title>
+    <title>Somnia Block Party | Pro Symphony</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
     <style>
         :root { 
-            --pink: #FF69B4; 
-            --light-purple: #B19CD9; 
-            --somnia-blue: #6FD5FF; 
-            --deep-bg: #0a001a; /* New Cyber-Purple Color */
+            --pink: #FF69B4; --light-purple: #B19CD9; --somnia-blue: #6FD5FF; 
+            --deep-bg: #0a001a; 
         }
         body, html { margin: 0; padding: 0; background: var(--deep-bg); color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; }
 
         #landing, #orchestra { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; transition: opacity 0.5s; }
         #orchestra { display: none; z-index: 10; }
         
-        h1 { color: var(--light-purple); font-size: 2.8rem; letter-spacing: 6px; text-shadow: 0 0 15px var(--pink); }
-        .desc-box { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; margin: 20px 0; border: 1px solid rgba(177, 156, 217, 0.1); font-size: 0.8rem; line-height: 1.5; }
+        /* DATA STREAM OVERLAY (Technical Look) */
+        #data-stream {
+            position: absolute; top: 20px; left: 20px; width: 220px; height: 200px;
+            font-family: 'Courier New', monospace; font-size: 9px; color: var(--somnia-blue);
+            overflow: hidden; text-align: left; pointer-events: none; opacity: 0.5; z-index: 100;
+            line-height: 1.2; border-left: 1px solid var(--somnia-blue); padding-left: 10px;
+        }
 
-        button { padding: 16px 40px; background: white; color: black; border: none; font-weight: bold; cursor: pointer; border-radius: 6px; letter-spacing: 2px; transition: 0.3s; }
+        h1 { color: var(--light-purple); font-size: 2.5rem; letter-spacing: 6px; text-shadow: 0 0 15px var(--pink); margin: 0; }
+        .desc-box { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; margin: 20px 0; border: 1px solid rgba(177, 156, 217, 0.1); font-size: 0.8rem; max-width: 400px; }
+
+        button { padding: 16px 40px; background: white; color: black; border: none; font-weight: bold; cursor: pointer; border-radius: 6px; letter-spacing: 2px; transition: 0.3s; z-index: 110; }
         button:hover { transform: translateY(-3px); box-shadow: 0 0 25px var(--pink); }
 
         #rippleCanvas { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
-        .blob { position: absolute; width: 120px; height: 120px; background: var(--somnia-blue); filter: blur(50px); border-radius: 50%; opacity: 0.4; z-index: 1; transition: transform 0.2s; }
+        
+        /* DYNAMIC ORBS */
+        .blob { position: absolute; width: 100px; height: 100px; filter: blur(45px); border-radius: 50%; opacity: 0.35; z-index: 1; transition: transform 0.2s, opacity 0.5s; }
 
-        footer { position: absolute; bottom: 15px; width: 100%; text-align: center; font-size: 0.75rem; color: #888; z-index: 100; line-height: 1.6; }
+        footer { position: absolute; bottom: 15px; width: 100%; text-align: center; font-size: 0.7rem; color: #666; z-index: 100; }
         footer a { color: var(--light-purple); text-decoration: none; font-weight: bold; margin: 0 8px; }
     </style>
 </head>
 <body>
 
+    <div id="data-stream"></div>
     <canvas id="rippleCanvas"></canvas>
 
     <div id="landing">
         <h1>BLOCK PARTY 🎸</h1>
-        <p>The First On-Chain Generative Orchestra</p>
+        <p style="color: var(--somnia-blue); font-size: 0.8rem; letter-spacing: 2px;">REAL-TIME REACTIVE SYMPHONY</p>
         <div class="desc-box">
-            <b>STT Symphony:</b> Real-time network activity quantized into lo-fi beats.<br>
-            <b>NFT Minting:</b> Send STT to create a unique Harmonic Identity NFT.
+            <b>The Conductor:</b> Translating Somnia's 400k TPS into a quantized lo-fi soundscape.<br><br>
+            <b>NFT Mint:</b> Send STT to 0x8741...71c to generate your unique Harmonic Identity.
         </div>
-        <button onclick="initApp()">START ORCHESTRA</button>
+        <button onclick="initApp()">INITIALIZE SYSTEM</button>
     </div>
 
     <div id="orchestra">
-        <div class="blob" id="b1" style="top:15%; left:20%"></div>
-        <div class="blob" id="b2" style="bottom:15%; right:20%; background:var(--pink)"></div>
+        <div id="blob-container"></div>
+        <h2 id="partyId" style="font-weight: 200; color: var(--light-purple); letter-spacing: 4px; margin-bottom: 5px;">SYNCING...</h2>
+        <p id="sub-status" style="font-size: 0.6rem; color: var(--somnia-blue); margin-bottom: 30px;">BLOCKCHAIN LISTENER ACTIVE</p>
         
-        <h2 id="partyId" style="font-weight: 200; color: var(--light-purple); letter-spacing: 4px;">SYNCING PULSE...</h2>
         <button id="mintBtn" onclick="mintNFT()">MINT HARMONY (STT)</button>
-        <div id="status" style="margin-top:25px; font-family: monospace; color: var(--somnia-blue); font-size: 0.8rem;">Connecting to Somnia Shannon...</div>
+        
+        <div id="status" style="margin-top:25px; font-family: monospace; color: var(--pink); font-size: 0.75rem; letter-spacing: 1px;">Awaiting Genesis Pulse...</div>
     </div>
 
     <footer>
-        Built by Senseii_ciel 🜂 | For the Somnia Mini Hackathon<br>
-        <a href="https://x.com/Senseii_ciel" target="_blank">X (Twitter)</a> |
-        <a href="https://discord.com/users/1305099867126759516" target="_blank">Discord</a> |
-        <a href="https://github.com/ozzy-sensei" target="_blank">GitHub</a>
+        Built by Senseii_ciel 🜂 | For Somnia Mini Hackathon<br>
+        <a href="https://x.com/Senseii_ciel" target="_blank">X</a> | <a href="https://github.com/ozzy-sensei" target="_blank">GitHub</a>
     </footer>
 
     <script>
         let provider, signer, userAddress;
-        // 1. YOUR WALLET
         const MY_WALLET = "0x874192a4403e3a2cd7fe68baacd2fe35d980f71c"; 
-        const SOMNIA_CHAIN_ID = "0xc48c"; // 50316
+        const SOMNIA_CHAIN_ID = "0xc48c"; 
         const RPC_WSS = "wss://dream-rpc.somnia.network/ws";
 
-        // 2. MUSICAL INTELLIGENCE (The "Wow" Part)
+        // MUSIC ENGINE
         const SCALE = ["A3", "C4", "D4", "E4", "G4", "A4", "C5", "E5"]; 
-        const synth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: "triangle" } }).toDestination();
-        const feedbackDelay = new Tone.FeedbackDelay("8n", 0.4).toDestination();
+        const synth = new Tone.PolySynth(Tone.Synth).toDestination();
+        const delay = new Tone.FeedbackDelay("8n", 0.4).toDestination();
         const reverb = new Tone.Reverb(4).toDestination();
-        synth.connect(feedbackDelay);
-        feedbackDelay.connect(reverb);
+        synth.connect(delay); delay.connect(reverb);
 
-        // 3. COLOR TRANSITIONS
         const RAINBOW = ["#FF69B4", "#B19CD9", "#6FD5FF", "#00FFCC", "#FFD700"];
         let ripples = [];
 
@@ -89,35 +94,43 @@
                 provider = new ethers.BrowserProvider(window.ethereum);
                 signer = await provider.getSigner();
 
-                document.getElementById('landing').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('landing').style.display = 'none';
-                    document.getElementById('orchestra').style.display = 'flex';
-                }, 500);
+                document.getElementById('landing').style.display = 'none';
+                document.getElementById('orchestra').style.display = 'flex';
+                document.getElementById('partyId').innerText = `CONDUCTOR: ${userAddress.slice(0,6)}...`;
 
-                document.getElementById('partyId').innerText = `CONDUCTOR: ${userAddress.slice(0,6)}`;
-
-                // Start Music engine
                 await Tone.start();
                 Tone.Transport.bpm.value = 110;
                 Tone.Transport.start();
                 
+                generateOrbs(12); // Create 12 dynamic orbs
                 startCanvas();
                 startSmartListener();
-            } catch (e) { alert("Switch to Somnia Shannon Testnet!"); }
+            } catch (e) { alert("Please connect to Somnia Shannon Testnet"); }
         }
 
-        // 4. SMART LISTENER (Quantized Beats)
+        function generateOrbs(count) {
+            const container = document.getElementById('blob-container');
+            for (let i = 0; i < count; i++) {
+                const b = document.createElement('div');
+                b.className = 'blob';
+                b.style.left = Math.random() * 90 + "%";
+                b.style.top = Math.random() * 90 + "%";
+                b.style.background = RAINBOW[i % RAINBOW.length];
+                b.id = "blob-" + i;
+                container.appendChild(b);
+            }
+        }
+
         function startSmartListener() {
             const socket = new ethers.WebSocketProvider(RPC_WSS);
+            const stream = document.getElementById('data-stream');
             
             socket.on("block", async (num) => {
                 const block = await socket.getBlock(num, true);
-                document.getElementById('status').innerText = `BLOCK #${num} | ${block.transactions.length} LIVE ACTIONS`;
+                document.getElementById('status').innerText = `SYSTEM_PULSE: BLOCK_${num} [${block.transactions.length}_TX]`;
                 
                 if(block.transactions.length > 0) {
                     block.transactions.slice(0, 4).forEach((tx, i) => {
-                        // Logic: Schedule notes on the 8th and 16th beats
                         const divisions = ["0", "8n", "4n", "4n+8n"];
                         const note = SCALE[parseInt(tx.hash.slice(-1), 16) % SCALE.length];
                         const color = RAINBOW[parseInt(tx.hash.slice(-2), 16) % RAINBOW.length];
@@ -125,72 +138,61 @@
                         Tone.Transport.scheduleOnce((time) => {
                             synth.triggerAttackRelease(note, "16n", time);
                             spawnRipple(color);
-                            pulseBlobs();
+                            pulseRandomOrb();
+                            
+                            // Log to Data Stream
+                            const entry = document.createElement('div');
+                            entry.innerText = `> TX: ${tx.hash.slice(0,14)}... [${note}]`;
+                            stream.prepend(entry);
+                            if(stream.children.length > 15) stream.lastChild.remove();
                         }, `+${divisions[i]}`);
                     });
                 }
             });
 
-            // Steady Bassline for foundation
             const bass = new Tone.Synth({oscillator:{type:"sine"}}).toDestination();
             Tone.Transport.scheduleRepeat((time) => {
-                bass.triggerAttackRelease("A2", "4n", time, 0.15);
+                bass.triggerAttackRelease("A2", "4n", time, 0.1);
             }, "2n");
         }
 
         function spawnRipple(color) {
-            ripples.push({
-                x: Math.random() * window.innerWidth,
-                y: Math.random() * window.innerHeight,
-                r: 0,
-                o: 0.8,
-                c: color
-            });
+            ripples.push({ x: Math.random()*window.innerWidth, y: Math.random()*window.innerHeight, r: 0, o: 0.8, c: color });
         }
 
-        function pulseBlobs() {
-            const b = document.getElementById(Math.random() > 0.5 ? 'b1' : 'b2');
+        function pulseRandomOrb() {
+            const id = "blob-" + Math.floor(Math.random() * 12);
+            const b = document.getElementById(id);
             if(b) {
-                b.style.transform = "scale(1.8)";
+                b.style.transform = "scale(2.2)";
                 setTimeout(() => b.style.transform = "scale(1)", 150);
             }
         }
 
         async function mintNFT() {
             const btn = document.getElementById('mintBtn');
-            btn.innerText = "CONFIRMING STT...";
+            btn.innerText = "EXECUTING_STT_TRANSFER...";
             try {
-                const tx = await signer.sendTransaction({
-                    to: MY_WALLET, 
-                    value: ethers.parseEther("0.1") 
-                });
+                const tx = await signer.sendTransaction({ to: MY_WALLET, value: ethers.parseEther("0.1") });
                 await tx.wait();
-                
-                // Victory Chord
                 const now = Tone.now();
                 synth.triggerAttackRelease(["A4", "C5", "E5"], "2n", now);
-                btn.innerText = "MINT SUCCESSFUL!";
-            } catch (e) { btn.innerText = "MINT FAILED"; }
+                btn.innerText = "MINT_SUCCESSFUL";
+            } catch (e) { btn.innerText = "MINT_FAILED"; }
         }
 
         function startCanvas() {
             const canvas = document.getElementById('rippleCanvas');
             const ctx = canvas.getContext('2d');
             canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            
             function draw() {
-                ctx.fillStyle = "rgba(10, 0, 26, 0.15)";
+                ctx.fillStyle = "rgba(10, 0, 26, 0.2)";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
                 ripples.forEach((r, i) => {
-                    r.r += 3; r.o -= 0.01;
-                    ctx.beginPath();
-                    ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2);
-                    ctx.strokeStyle = r.c.replace(')', `, ${r.o})`).replace('rgb', 'rgba').replace('#', ''); 
-                    // Simple hex to rgba approximation for the stroke
+                    r.r += 2.5; r.o -= 0.012;
+                    ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2);
                     ctx.strokeStyle = `${r.c}${Math.floor(r.o * 255).toString(16).padStart(2, '0')}`;
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
+                    ctx.lineWidth = 2; ctx.stroke();
                     if(r.o <= 0) ripples.splice(i, 1);
                 });
                 requestAnimationFrame(draw);
