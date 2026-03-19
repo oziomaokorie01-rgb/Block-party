@@ -163,7 +163,7 @@
 
         async function mintNFT() {
             const btn = document.getElementById('mintBtn');
-            btn.innerText = "SENDING STT...";
+            btn.innerText = "SENDING 0.1 STT...";
             try {
                 const tx = await signer.sendTransaction({ to: MY_WALLET, value: ethers.parseEther("0.1") });
                 await tx.wait();
